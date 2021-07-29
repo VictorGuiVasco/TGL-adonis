@@ -4,20 +4,20 @@ const User = use("App/Models/User");
 const Mail = use("Mail");
 
 class UserController {
-  async index({ request }) {
+  async index({ auth, request }) {
     const { page } = request.get();
-    const users = await User.query().paginate(page);
+    const users = await User.query().where("id", auth.user.id).paginate(page);
 
-    return users;
+    return auth.user;
   }
 
-  async show({ params, response }) {
+  async show({ auth, params, response }) {
     try {
-      const user = await User.findByOrFail("email", params.email);
+      const user = await User.findByOrFail("id", auth.user.id);
 
       return user;
     } catch (error) {
-      return response.status(404).send({ message: "Email não encontrado" });
+      return response.status(404).send({ message: "Users não encontrado" });
     }
   }
 
@@ -45,7 +45,12 @@ class UserController {
     }
   }
 
-  async update({ params, request }) {
+  async update({ auth, params, request, response }) {
+    if (auth.user.id !== +params.id) {
+      return response
+        .status(401)
+        .send({ message: "Você precisa ser o usuário para atualizar o id" });
+    }
     const user = await User.findOrFail(params.id);
     const data = request.only(["username", "email", "password"]);
 
@@ -56,7 +61,7 @@ class UserController {
   }
 
   async destroy({ auth, params, response }) {
-    if (auth.user.id !== params.id) {
+    if (auth.user.id !== +params.id) {
       return response
         .status(401)
         .send({ message: "Você precisa ser o usuário para deletar o id" });

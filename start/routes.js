@@ -3,7 +3,6 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use("Route");
 
-Route.get("users", "UserController.index");
 Route.post("users", "UserController.store").validator("User");
 
 Route.post("session", "SessionController.store").validator("Session");
@@ -16,7 +15,8 @@ Route.put("password", "ForgotPasswordController.update").validator(
 );
 
 Route.group(() => {
-  Route.get("users/:email", "UserController.show");
+  Route.get("users", "UserController.index");
+  Route.get("users/:id", "UserController.show");
   Route.put("users/:id", "UserController.update");
   Route.delete("users/:id", "UserController.destroy");
 
